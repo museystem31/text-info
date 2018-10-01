@@ -7,8 +7,8 @@
 </head>
 
 <body>
-    <h1>PDF Text Info</h1>
-    <h2>Document Info</h2>
+    <h1 style="color:#922B21;">PDF Text Info</h1>
+    <h2 style="color:#E74C3C">Document Stats</h2>
     <p>document word count: </p>
     <p id="docWordCount"></p>
     <p>document line count: </p>
@@ -22,7 +22,8 @@
     <p>document font size stats: </p>
     <p id="docFontSizeStats"></p>
 
-    <!--<p id="text"></p>-->
+    <h2 style="color:#E74C3C">Page Stats</h2>
+    <p id="pageStats"></p>
 
     <script src="{{ url_for('static', filename='pdfjs-1.9.426-dist/build/pdf.js') }}"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
@@ -54,7 +55,7 @@
                     data: JSON.stringify(pagesText),
                     dataType: 'json',
                     success: function (data) {
-                        console.log("success");           
+                        console.log("success");
                         document.getElementById("docWordCount").innerHTML = JSON.stringify(data["docWordCount"]);
                         document.getElementById("docLineCount").innerHTML = JSON.stringify(data["docLineCount"]);
                         document.getElementById("docModeFontSize").innerHTML = JSON.stringify(data["docFontSizeStats"]["modeFontSize"]);
@@ -62,14 +63,53 @@
                         document.getElementById("docMinFontSize").innerHTML = JSON.stringify(data["docFontSizeStats"]["minFontSize"]);
 
                         let fontSizeInfo = "<ul>";
-                        for (let key in data["docFontSizeStats"]["fontSizes"]){
+                        for (let key in data["docFontSizeStats"]["fontSizes"]) {
                             let fontSize = data["docFontSizeStats"]["fontSizes"][key];
-                            let info = "<li>"+ "size: " + JSON.stringify(fontSize["size"]) + ", count: " + JSON.stringify(fontSize["count"]) + 
-                            ", frequency: " + JSON.stringify(fontSize["frequency"]) + ", deviation from mode: " + JSON.stringify(fontSize["deviationFromMode"]) + "</li>";
+                            let info = "<li>" + "size: " + JSON.stringify(fontSize["size"]) + ", count: " + JSON.stringify(fontSize["count"]) +
+                                ", frequency: " + JSON.stringify(fontSize["frequency"]) + ", deviation from mode: " + JSON.stringify(fontSize["deviationFromMode"]) + "</li>";
                             fontSizeInfo += info;
                         }
-                        fontSizeInfo += "</ul>"
+                        fontSizeInfo += "</ul>";
                         document.getElementById("docFontSizeStats").innerHTML = fontSizeInfo;
+
+                        // display page info
+                        let pages = data["pages"];
+                        let info = "";
+                        for (let i in pages) {
+                            let page = pages[i];
+                            info += "<h3 style='color:#2471A3';>" + "Page " + JSON.stringify(page["pageNumber"]) + "</h3>";
+                            info += "<p>" + "page word count: " + "</p>" + "<p>" + JSON.stringify(page["pageWordCount"]) + "</p>";
+                            info += "<p>" + "page line count: " + "</p>" + "<p>" + JSON.stringify(page["pageLineCount"]) + "</p>";
+                            info += "<p>" + "page font size stats: " + "</p>";
+                            info += "<p>" + "mode font size: " + "</p>" + "<p>" + JSON.stringify(page["pageFontSizeStats"]["modeFontSize"]) + "</p>"
+                            info += "<p>" + "max font size: " + "</p>" + "<p>" + JSON.stringify(page["pageFontSizeStats"]["maxFontSize"]) + "</p>"
+                            info += "<p>" + "min font size: " + "</p>" + "<p>" + JSON.stringify(page["pageFontSizeStats"]["minFontSize"]) + "</p>"
+                            info += "<p>" + "font size stats" + "</p>"
+
+                            let fontSizesInfo = "<ul>";
+                            // display font sizes' info
+                            for (let key in page["pageFontSizeStats"]["fontSizes"]) {
+                                let fontSize = page["pageFontSizeStats"]["fontSizes"][key];
+                                let fontSizeInfo = "<li>" + "size: " + JSON.stringify(fontSize["size"]) + ", count: " + JSON.stringify(fontSize["count"]) +
+                                    ", frequency: " + JSON.stringify(fontSize["frequency"]) + ", deviation from mode: " + JSON.stringify(fontSize["deviationFromMode"]) + "</li>";
+                                fontSizesInfo += fontSizeInfo;
+                            }
+
+                            fontSizesInfo += "</ul>";
+                            info += fontSizesInfo;
+
+                            // display text info
+                            let textsInfo = "<p> texts stats: </p>" ;
+                            let texts = page["pageTexts"];
+                            for (let i=0; i<texts.length; i++) {
+                                let textInfo = "<p>" + "str: " + JSON.stringify(texts[i]["str"]) + ", wordCount: " + JSON.stringify(texts[i]["wordCount"]) +
+                                    ", fontSize: " + JSON.stringify(texts[i]["fontSize"]) + "</p>";
+                                textsInfo += textInfo;
+                            }
+                            info += textsInfo;
+                        }
+
+                        document.getElementById("pageStats").innerHTML = info;
                     },
                     error: function (xhr, type) {
                         console.log("failed");
