@@ -7,7 +7,22 @@
 </head>
 
 <body>
-    <p id="text"></p>
+    <h1>PDF Text Info</h1>
+    <h2>Document Info</h2>
+    <p>document word count: </p>
+    <p id="docWordCount"></p>
+    <p>document line count: </p>
+    <p id="docLineCount"></p>
+    <p>document mode font size: </p>
+    <p id="docModeFontSize"></p>
+    <p>document max font size: </p>
+    <p id="docMaxFontSize"></p>
+    <p>document min font size: </p>
+    <p id="docMinFontSize"></p>
+    <p>document font size stats: </p>
+    <p id="docFontSizeStats"></p>
+
+    <!--<p id="text"></p>-->
 
     <script src="{{ url_for('static', filename='pdfjs-1.9.426-dist/build/pdf.js') }}"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
@@ -39,8 +54,22 @@
                     data: JSON.stringify(pagesText),
                     dataType: 'json',
                     success: function (data) {
-                        console.log("success");
-                        document.getElementById("text").innerHTML = JSON.stringify(data);
+                        console.log("success");           
+                        document.getElementById("docWordCount").innerHTML = JSON.stringify(data["docWordCount"]);
+                        document.getElementById("docLineCount").innerHTML = JSON.stringify(data["docLineCount"]);
+                        document.getElementById("docModeFontSize").innerHTML = JSON.stringify(data["docFontSizeStats"]["modeFontSize"]);
+                        document.getElementById("docMaxFontSize").innerHTML = JSON.stringify(data["docFontSizeStats"]["maxFontSize"]);
+                        document.getElementById("docMinFontSize").innerHTML = JSON.stringify(data["docFontSizeStats"]["minFontSize"]);
+
+                        let fontSizeInfo = "<ul>";
+                        for (let key in data["docFontSizeStats"]["fontSizes"]){
+                            let fontSize = data["docFontSizeStats"]["fontSizes"][key];
+                            let info = "<li>"+ "size: " + JSON.stringify(fontSize["size"]) + ", count: " + JSON.stringify(fontSize["count"]) + 
+                            ", frequency: " + JSON.stringify(fontSize["frequency"]) + ", deviation from mode: " + JSON.stringify(fontSize["deviationFromMode"]) + "</li>";
+                            fontSizeInfo += info;
+                        }
+                        fontSizeInfo += "</ul>"
+                        document.getElementById("docFontSizeStats").innerHTML = fontSizeInfo;
                     },
                     error: function (xhr, type) {
                         console.log("failed");
