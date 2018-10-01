@@ -39,11 +39,11 @@
                     data: JSON.stringify(pagesText),
                     dataType: 'json',
                     success: function (data) {
-                        console.log("success ");
+                        console.log("success");
                         document.getElementById("text").innerHTML = JSON.stringify(data);
                     },
                     error: function (xhr, type) {
-                        console.log("failed ");
+                        console.log("failed");
                     }
                 });
             });
