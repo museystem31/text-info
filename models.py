@@ -18,6 +18,7 @@ class Document:
         # create font size stats
         self.docWordCount = self.getDocWordCount(self.pages)
         self.docLineCount = self.getDocLineCount(self.pages)
+        #self.pageCount =
         docTexts = []
         for page in self.pages:
             docTexts += page["pageTexts"]
