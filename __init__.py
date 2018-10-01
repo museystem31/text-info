@@ -16,8 +16,8 @@ def index():
 def computeTextStats():
     pdf = request.json
     doc = Document(pdf)
-    response {}
-    
+    #response = {}
+    return jsonify(vars(doc))
 
 if __name__ == "__main__":
     app.run(debug=True)
