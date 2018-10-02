@@ -6,13 +6,13 @@ from models import Document, Page, Text
 import json
 import sys
 
-app = Flask(__name__, static_folder='static')
+application = Flask(__name__, static_folder='static')
 
-@app.route('/')
+@application.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/compute-text-stats/', methods = ['GET','POST'])
+@application.route('/compute-text-stats/', methods = ['GET','POST'])
 def computeTextStats():
     pdf = request.json
     doc = Document(pdf)
@@ -20,4 +20,4 @@ def computeTextStats():
     return jsonify(vars(doc))
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    application.run()

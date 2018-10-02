@@ -114,8 +114,8 @@ class FontSizeStats:
 
         # get mode, largest, and smallest font size
         self.modeFontSize = max(fontSizes, key=lambda key: fontSizes[key])
-        self.maxFontSize = max(k for k, v in fontSizes.iteritems())
-        self.minFontSize = min(k for k, v in fontSizes.iteritems())
+        self.maxFontSize = max(k for k, v in fontSizes.items())
+        self.minFontSize = min(k for k, v in fontSizes.items())
 
         for fontSize, count in self.fontSizes.items():
             self.fontSizes[fontSize] = vars(FontSize(fontSize, count, self.modeFontSize, totalWordCount))
