@@ -3,31 +3,15 @@
 
 <head>
     <meta charset="utf-8">
-    <title> PDF Info</title>
+    <title> Text Stats</title>
 </head>
 
 <body>
     <div id="file">
-        <!--<button id="upload-button">Select PDF</button>-->
-        <input type="file" id="file-to-upload" accept="application/pdf"/>
+        <input type="file" id="fileToUpload" accept="application/pdf"/>
     </div>
     <div id="info">
-        <h1 style="color:#922B21;">PDF Text Info</h1>
-        <h2 style="color:#E74C3C">Document Stats</h2>
-        <p>document word count: </p>
-        <p id="docWordCount"></p>
-        <p>document line count: </p>
-        <p id="docLineCount"></p>
-        <p>document mode font size: </p>
-        <p id="docModeFontSize"></p>
-        <p>document max font size: </p>
-        <p id="docMaxFontSize"></p>
-        <p>document min font size: </p>
-        <p id="docMinFontSize"></p>
-        <p>document font size stats: </p>
-        <p id="docFontSizeStats"></p>
-
-        <h2 style="color:#E74C3C">Page Stats</h2>
+        <p id=time></p>
         <p id="pageStats"></p>
     </div>
 
@@ -56,39 +40,47 @@
                         let textItems = textContent.items;
                         let pageBlocks = [];
 
-                        for (var i = 0; i < textItems.length; i++) {
-                            var item = textItems[i];
+                        for (let i = 0; i < textItems.length-2; i++) {
+                            let item = textItems[i];
                             let info = {};
                             info.str = item.str;
-                            info.size = item.height;
+                            info.fontSize = item.height;
+                            info.length = info.str.length;
+                            info.x = item.transform[4];
+                            info.y = item.transform[5];
+                            info.spacing = info.y - textItems[i+1].transform[5];
                             pageBlocks.push(info);
                         }
+                        let last = textItems[textItems.length-1];
+                        let info = {};
+                        info.str = last.str;
+                        info.fontSize = last.height;
+                        info.length = last.str.length;
+                        info.x = last.transform[4];
+                        info.y = last.transform[5];
+                        info.spacing = 0;
+                        pageBlocks.push(info);
+
                         // Solve promise with the text retrieven from the page
                         resolve(pageBlocks);
                     });
                 });
             });
         }
-
-        $("#upload-button").on('click', function () {
-            $("#file-to-upload").trigger('click');
-        });
-
         // When user chooses a PDF file
-        $("#file-to-upload").on('change', function () {
-            $("#upload-button").hide();
+        $("#fileToUpload").on('change', function () {
             $("#info").show();
 
             // Send the object url of the pdf
             // get pdf document
-            let pdfURL = URL.createObjectURL($("#file-to-upload").get(0).files[0]);
+            let pdfURL = URL.createObjectURL($("#fileToUpload").get(0).files[0]);
             PDFJS.getDocument(pdfURL).then(function (pdf) {
                 let pdfDocument = pdf;
                 let pagesPromises = [];
                 const numPages = pdf.pdfInfo.numPages;
                 const pagesRange = numPages < 15 ? numPages : 15;
 
-                // pdf.pdfInfo.numPages
+                
                 for (let i = 0; i < pagesRange; i++) {
                     // to prevent that i is always the total of pages
                     (function (pageNumber) {
@@ -105,60 +97,34 @@
                         dataType: 'json',
                         success: function (data) {
                             console.log("success");
-                            document.getElementById("docWordCount").innerHTML = JSON.stringify(data["docWordCount"]);
-                            document.getElementById("docLineCount").innerHTML = JSON.stringify(data["docLineCount"]);
-                            document.getElementById("docModeFontSize").innerHTML = JSON.stringify(data["docFontSizeStats"]["modeFontSize"]);
-                            document.getElementById("docMaxFontSize").innerHTML = JSON.stringify(data["docFontSizeStats"]["maxFontSize"]);
-                            document.getElementById("docMinFontSize").innerHTML = JSON.stringify(data["docFontSizeStats"]["minFontSize"]);
-
-                            let fontSizeInfo = "<ul>";
-                            for (let key in data["docFontSizeStats"]["fontSizes"]) {
-                                let fontSize = data["docFontSizeStats"]["fontSizes"][key];
-                                let info = "<li>" + "size: " + JSON.stringify(fontSize["size"]) + ", count: " + JSON.stringify(fontSize["count"]) +
-                                    ", frequency: " + JSON.stringify(fontSize["frequency"]) + ", deviation from mode: " + JSON.stringify(fontSize["deviationFromMode"]) + "</li>";
-                                fontSizeInfo += info;
-                            }
-                            fontSizeInfo += "</ul>";
-                            document.getElementById("docFontSizeStats").innerHTML = fontSizeInfo;
-
+                            
+                            let time = data["time"];
+                            document.getElementById("time").innerHTML = "<p> Execution Time: " + time + " seconds</p>";
+                            data = data["pdf"];
+                            
                             // display page info
-                            let pages = data["pages"];
                             let info = "";
-                            for (let i in pages) {
-                                let page = pages[i];
-                                info += "<h3 style='color:#2471A3';>" + "Page " + JSON.stringify(page["pageNumber"]) + "</h3>";
-                                info += "<p>" + "page word count: " + "</p>" + "<p>" + JSON.stringify(page["pageWordCount"]) + "</p>";
-                                info += "<p>" + "page line count: " + "</p>" + "<p>" + JSON.stringify(page["pageLineCount"]) + "</p>";
-                                info += "<p>" + "page font size stats: " + "</p>";
-                                info += "<p>" + "mode font size: " + "</p>" + "<p>" + JSON.stringify(page["pageFontSizeStats"]["modeFontSize"]) + "</p>"
-                                info += "<p>" + "max font size: " + "</p>" + "<p>" + JSON.stringify(page["pageFontSizeStats"]["maxFontSize"]) + "</p>"
-                                info += "<p>" + "min font size: " + "</p>" + "<p>" + JSON.stringify(page["pageFontSizeStats"]["minFontSize"]) + "</p>"
-                                info += "<p>" + "font size stats" + "</p>"
-
-                                let fontSizesInfo = "<ul>";
-                                // display font sizes' info
-                                for (let key in page["pageFontSizeStats"]["fontSizes"]) {
-                                    let fontSize = page["pageFontSizeStats"]["fontSizes"][key];
-                                    let fontSizeInfo = "<li>" + "size: " + JSON.stringify(fontSize["size"]) + ", count: " + JSON.stringify(fontSize["count"]) +
-                                        ", frequency: " + JSON.stringify(fontSize["frequency"]) + ", deviation from mode: " + JSON.stringify(fontSize["deviationFromMode"]) + "</li>";
-                                    fontSizesInfo += fontSizeInfo;
-                                }
-
-                                fontSizesInfo += "</ul>";
-                                info += fontSizesInfo;
-
+                            for (let i=0; i<data.length; i++) {
+                                let page = data[i];
                                 // display text info
-                                let textsInfo = "<p> texts stats: </p>";
-                                let texts = page["pageTexts"];
-                                for (let i = 0; i < texts.length; i++) {
-                                    let textInfo = "<p>" + "str: " + JSON.stringify(texts[i]["str"]) + ", wordCount: " + JSON.stringify(texts[i]["wordCount"]) +
-                                        ", fontSize: " + JSON.stringify(texts[i]["fontSize"]) + "</p>";
+                                info += "<h2 style='color:#808F7C'> Page " + i + "</h2>"
+                                let textsInfo = "";
+                                for (let i = 0; i < page.length; i++) {
+                                    let textInfo = "<p style='color:#00AA90'>" + "Text: " + JSON.stringify(page[i]["str"]) + "</p>" + 
+                                    "<p>" + "font size: " + JSON.stringify(page[i]["fontSize"]) + 
+                                    ", length: " + JSON.stringify(page[i]["length"]) +
+                                    ", x: " + JSON.stringify(page[i]["x"]) +
+                                    ", y: " + JSON.stringify(page[i]["y"]) +
+                                    ", spacing: " + JSON.stringify(page[i]["spacing"]) +
+                                    ", ratio: " + JSON.stringify(page[i]["ratio"]) +
+                                    "</p>";
                                     textsInfo += textInfo;
                                 }
                                 info += textsInfo;
                             }
 
                             document.getElementById("pageStats").innerHTML = info;
+                            
                         },
                         error: function (xhr, type) {
                             console.log("failed");
